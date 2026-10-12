@@ -3,6 +3,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
+import { applyCodexCatalog, CODEX_CATALOG_FALLBACK } from "../src/providers/openai-codex-catalog.ts";
 import { getEffortThinkingLevelMap, type ModelsDevReasoningOption } from "./models-dev-reasoning-options.ts";
 import { type AiGatewayPricing, getAiGatewayCost } from "./ai-gateway-pricing.ts";
 import { buildOpenRouterCatalog, type OpenRouterCatalog, type OpenRouterModelListItem } from "./openrouter-catalog.ts";
@@ -3358,6 +3359,17 @@ async function generateModels() {
 		applyPromptCacheMetadata(model);
 		applyImageInputMetadata(model);
 	}
+	// Apply official Codex metadata last so generic ID-based heuristics cannot
+	// overwrite account-verified context windows or supported reasoning levels.
+	const officialCodexModels = applyCodexCatalog(
+		allModels.filter((model): model is Model<"openai-codex-responses"> => model.provider === "openai-codex" && model.api === "openai-codex-responses"),
+		CODEX_CATALOG_FALLBACK,
+	);
+	for (const model of officialCodexModels) {
+		const index = allModels.findIndex((candidate) => candidate.provider === "openai-codex" && candidate.id === model.id);
+		if (index === -1) allModels.push(model);
+		else allModels[index] = model;
+	}
 	applyAnthropicAllowedFallbackModelMetadata(allModels.filter(isAnthropicFallbackMetadataModel));
 
 	// Keep chat and image catalogs separate so one upstream ID can expose both
@@ -3490,8 +3502,16 @@ async function generateModels() {
 					let output = generatedHeader;
 					output += `import values from "./data/${providerId}.json" with { type: "json" };\n`;
 					output += `import { flattenChatModelCatalog, flattenClassifierModelCatalog, flattenImageModelCatalog, type ChatModelCatalog, type ClassifierModelCatalog, type ImageModelCatalog } from "../model-catalog.ts";\n\n`;
-					output += `export const ${catalogConstName(providerId)}: ChatModelCatalog<typeof values, ${JSON.stringify(providerId)}> =\n`;
-					output += `\tflattenChatModelCatalog(${JSON.stringify(providerId)}, values);\n\n`;
+					if (providerId === "openai-codex") {
+						// Source checkouts may hydrate an older pinned JSON snapshot. Keep
+						// static SDK getters aligned with the provider's official fallback too.
+						output += `import { applyCodexCatalog, CODEX_CATALOG_FALLBACK } from "./openai-codex-catalog.ts";\n\n`;
+						output += `export const ${catalogConstName(providerId)}: ChatModelCatalog<typeof values, ${JSON.stringify(providerId)}> =\n`;
+						output += `\tObject.fromEntries(applyCodexCatalog(Object.values(flattenChatModelCatalog(${JSON.stringify(providerId)}, values)), CODEX_CATALOG_FALLBACK).map(model => [model.id, model])) as ChatModelCatalog<typeof values, ${JSON.stringify(providerId)}>;\n\n`;
+					} else {
+						output += `export const ${catalogConstName(providerId)}: ChatModelCatalog<typeof values, ${JSON.stringify(providerId)}> =\n`;
+						output += `\tflattenChatModelCatalog(${JSON.stringify(providerId)}, values);\n\n`;
+					}
 					output += `export const ${imageCatalogConstName(providerId)}: ImageModelCatalog<typeof values, ${JSON.stringify(providerId)}> =\n`;
 					output += `\tflattenImageModelCatalog(${JSON.stringify(providerId)}, values);\n\n`;
 					output += `export const ${classifierCatalogConstName(providerId)}: ClassifierModelCatalog<typeof values, ${JSON.stringify(providerId)}> =\n`;

@@ -4,8 +4,10 @@
 import values from "./data/openai-codex.json" with { type: "json" };
 import { flattenChatModelCatalog, flattenClassifierModelCatalog, flattenImageModelCatalog, type ChatModelCatalog, type ClassifierModelCatalog, type ImageModelCatalog } from "../model-catalog.ts";
 
+import { applyCodexCatalog, CODEX_CATALOG_FALLBACK } from "./openai-codex-catalog.ts";
+
 export const OPENAI_CODEX_MODELS: ChatModelCatalog<typeof values, "openai-codex"> =
-	flattenChatModelCatalog("openai-codex", values);
+	Object.fromEntries(applyCodexCatalog(Object.values(flattenChatModelCatalog("openai-codex", values)), CODEX_CATALOG_FALLBACK).map(model => [model.id, model])) as ChatModelCatalog<typeof values, "openai-codex">;
 
 export const OPENAI_CODEX_IMAGE_MODELS: ImageModelCatalog<typeof values, "openai-codex"> =
 	flattenImageModelCatalog("openai-codex", values);

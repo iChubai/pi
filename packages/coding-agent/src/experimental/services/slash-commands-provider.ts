@@ -14,6 +14,7 @@ const THINKING_DESCRIPTIONS: Record<ModelThinkingLevel, string> = {
 	high: "Deep reasoning",
 	xhigh: "Extra-high reasoning",
 	max: "Maximum reasoning",
+	ultra: "Ultra reasoning",
 };
 
 interface RegisteredSlashCommand {

@@ -846,7 +846,12 @@ export interface Model<TApi extends Api> extends BaseModel<TApi> {
 	thinkingLevelMap?: ThinkingLevelMap;
 	/** Prompt cache lifetimes per retention tier. Unset when the provider's cache behavior is unknown. */
 	promptCache?: ModelPromptCache;
+	/** Default context budget advertised by the provider. */
 	contextWindow: number;
+	/** Maximum configurable context; not automatically selected as the default. */
+	maxContextWindow?: number;
+	/** Provider-advertised reasoning default; explicit user settings take precedence. */
+	defaultThinkingLevel?: ModelThinkingLevel;
 	maxTokens: number;
 	/** Default sampling parameters for this model. See {@link StreamOptions.samplingParams}; per-request keys override these. */
 	samplingParams?: SamplingParams;

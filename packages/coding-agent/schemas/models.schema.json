@@ -104,6 +104,22 @@
                     "type": "number",
                     "exclusiveMinimum": 0
                   },
+                  "maxContextWindow": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "defaultThinkingLevel": {
+                    "enum": [
+                      "off",
+                      "minimal",
+                      "low",
+                      "medium",
+                      "high",
+                      "xhigh",
+                      "max",
+                      "ultra"
+                    ]
+                  },
                   "maxTokens": {
                     "type": "number",
                     "exclusiveMinimum": 0
@@ -154,6 +170,12 @@
                         }
                       },
                       "max": {
+                        "type": "object",
+                        "patternProperties": {
+                          "^.*$": {}
+                        }
+                      },
+                      "ultra": {
                         "type": "object",
                         "patternProperties": {
                           "^.*$": {}
@@ -269,6 +291,22 @@
                       "type": "number",
                       "exclusiveMinimum": 0
                     },
+                    "maxContextWindow": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "defaultThinkingLevel": {
+                      "enum": [
+                        "off",
+                        "minimal",
+                        "low",
+                        "medium",
+                        "high",
+                        "xhigh",
+                        "max",
+                        "ultra"
+                      ]
+                    },
                     "maxTokens": {
                       "type": "number",
                       "exclusiveMinimum": 0
@@ -319,6 +357,12 @@
                           }
                         },
                         "max": {
+                          "type": "object",
+                          "patternProperties": {
+                            "^.*$": {}
+                          }
+                        },
+                        "ultra": {
                           "type": "object",
                           "patternProperties": {
                             "^.*$": {}
@@ -1142,6 +1186,16 @@
           ]
         },
         "max": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ultra": {
           "anyOf": [
             {
               "type": "string"

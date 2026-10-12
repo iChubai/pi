@@ -45,6 +45,7 @@ const THINKING_DESCRIPTIONS: Record<ThinkingLevel, string> = {
 	high: "Deep reasoning (~16k tokens)",
 	xhigh: "Extra-high reasoning (~32k tokens)",
 	max: "Maximum reasoning",
+	ultra: "Ultra reasoning",
 };
 
 const DEFAULT_PROJECT_TRUST_LABELS: Record<DefaultProjectTrust, string> = {

@@ -657,7 +657,11 @@ export async function findInitialModel(options: {
 			process.exit(1);
 		}
 		if (resolved.model) {
-			return { model: resolved.model, thinkingLevel: DEFAULT_THINKING_LEVEL, fallbackMessage: undefined };
+			return {
+				model: resolved.model,
+				thinkingLevel: resolved.model.defaultThinkingLevel ?? DEFAULT_THINKING_LEVEL,
+				fallbackMessage: undefined,
+			};
 		}
 	}
 
@@ -667,7 +671,12 @@ export async function findInitialModel(options: {
 		const perModel = modelThinkingLevels?.[`${scopedModel.model.provider}/${scopedModel.model.id}`];
 		return {
 			model: scopedModel.model,
-			thinkingLevel: scopedModel.thinkingLevel ?? perModel ?? defaultThinkingLevel ?? DEFAULT_THINKING_LEVEL,
+			thinkingLevel:
+				scopedModel.thinkingLevel ??
+				perModel ??
+				defaultThinkingLevel ??
+				scopedModel.model.defaultThinkingLevel ??
+				DEFAULT_THINKING_LEVEL,
 			fallbackMessage: undefined,
 		};
 	}
@@ -682,6 +691,8 @@ export async function findInitialModel(options: {
 				thinkingLevel = perModel;
 			} else if (defaultThinkingLevel) {
 				thinkingLevel = defaultThinkingLevel;
+			} else if (model.defaultThinkingLevel) {
+				thinkingLevel = model.defaultThinkingLevel;
 			}
 			return { model, thinkingLevel, fallbackMessage: undefined };
 		}
@@ -696,12 +707,20 @@ export async function findInitialModel(options: {
 			const defaultId = defaultModelPerProvider[provider];
 			const match = availableModels.find((m) => m.provider === provider && m.id === defaultId);
 			if (match) {
-				return { model: match, thinkingLevel: DEFAULT_THINKING_LEVEL, fallbackMessage: undefined };
+				return {
+					model: match,
+					thinkingLevel: match.defaultThinkingLevel ?? DEFAULT_THINKING_LEVEL,
+					fallbackMessage: undefined,
+				};
 			}
 		}
 
 		// If no default found, use first available
-		return { model: availableModels[0], thinkingLevel: DEFAULT_THINKING_LEVEL, fallbackMessage: undefined };
+		return {
+			model: availableModels[0],
+			thinkingLevel: availableModels[0].defaultThinkingLevel ?? DEFAULT_THINKING_LEVEL,
+			fallbackMessage: undefined,
+		};
 	}
 
 	// 5. No model found

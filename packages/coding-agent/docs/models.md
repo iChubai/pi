@@ -2,6 +2,16 @@
 
 For a built-in provider, start with `/login`, then choose a model with `/model`. Use custom model configuration only when Pi does not already include the provider or endpoint you need.
 
+## Official Codex model metadata
+
+The `openai-codex` provider refreshes model metadata from OpenAI's authenticated Codex catalog, not pi.dev. It keeps an account-scoped cache, revalidates with ETag, and retains cached or bundled metadata when offline. `pi update --models` forces a refresh when running this fork. Credentials and upstream model instructions are not stored in the catalog cache.
+
+`contextWindow` is the official default; `maxContextWindow` is the separately advertised configurable maximum. Pi uses the default for context accounting and compaction, not the maximum. The account catalog checked on 2026-10-12 advertises **500,000 / 872,000** for `gpt-6.1-sol`, **272,000 / 872,000** for the listed GPT-6 and GPT-5.6 models, and **272,000 / 272,000** for `gpt-5.5`. Account availability can differ. Hidden models remain known but are omitted from the account's advertised selection after refresh; legacy IDs are not deleted.
+
+Supported reasoning levels, including `ultra` where advertised, input modalities, tool-search support, and provider reasoning defaults are synchronized per model. Explicit user preferences and `models.json` overrides take precedence. Existing output limits and pricing tiers are retained: the official Codex catalog does not publish them. Newly discovered IDs use Pi's conservative 16k output default and zero/unknown subscription cost, not invented official limits or prices.
+
+This is a core change. Installing the customization extensions alone does not update a previously installed Pi runtime.
+
 ## Choose a connection
 
 | What you have | Recommended setup |

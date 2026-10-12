@@ -4,7 +4,7 @@ export type ModelsDevReasoningOption =
 	| { type: "toggle" }
 	| {
 			type: "effort";
-			values: Array<"none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max" | "default" | null>;
+			values: Array<"none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max" | "ultra" | "default" | null>;
 	  }
 	| { type: "budget_tokens"; min?: number; max?: number };
 
@@ -20,11 +20,12 @@ export function getEffortThinkingLevelMap(options: readonly ModelsDevReasoningOp
 	if (effortValues.length === 0) return undefined;
 
 	const supported = new Set(effortValues);
-	if (!THINKING_LEVELS.some((level) => supported.has(level)) && !supported.has("none")) return undefined;
+	if (!THINKING_LEVELS.some((level) => supported.has(level)) && !supported.has("none") && !supported.has("ultra")) return undefined;
 
 	const map: ThinkingLevelMap = { off: supported.has("none") ? "none" : null };
 	for (const level of THINKING_LEVELS) {
 		map[level] = supported.has(level) ? level : null;
 	}
+	if (supported.has("ultra")) map.ultra = "ultra";
 	return map;
 }

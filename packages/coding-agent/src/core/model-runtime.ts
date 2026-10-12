@@ -224,13 +224,12 @@ export class ModelRuntime implements Models {
 				? new FileModelsStore(options.modelsStorePath ?? join(dirname(modelsPath), "models-store.json"))
 				: new InMemoryCodingAgentModelsStore());
 		const builtinModelDataGeneratedAt = builtinProviderCatalog.getBuiltinModelDataGeneratedAt();
-		const providers = builtinProviderCatalog
-			.builtinProviders()
-			.map((provider) =>
-				provider.id === "radius"
-					? provider
-					: withRemoteCatalog(provider, options.catalogBaseUrl, builtinModelDataGeneratedAt),
-			);
+		const providers = builtinProviderCatalog.builtinProviders().map((provider) =>
+			// Native account catalogs must not be replaced by pi.dev snapshots.
+			provider.id === "radius" || provider.id === "openai-codex"
+				? provider
+				: withRemoteCatalog(provider, options.catalogBaseUrl, builtinModelDataGeneratedAt),
+		);
 		const runtime = new ModelRuntime(
 			credentials,
 			config,

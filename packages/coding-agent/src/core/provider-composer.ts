@@ -67,6 +67,8 @@ export interface ProviderChatModelConfig extends ProviderModelConfigBase {
 	thinkingLevelMap?: Model<Api>["thinkingLevelMap"];
 	promptCache?: Model<Api>["promptCache"];
 	contextWindow: number;
+	maxContextWindow?: number;
+	defaultThinkingLevel?: Model<Api>["defaultThinkingLevel"];
 	maxTokens: number;
 	samplingParams?: Model<Api>["samplingParams"];
 	samplingParamsByThinkingLevel?: Model<Api>["samplingParamsByThinkingLevel"];
@@ -167,7 +169,7 @@ function mergeSamplingParamsByThinkingLevel(
 ): Model<Api>["samplingParamsByThinkingLevel"] {
 	if (!override) return base;
 	const merged = { ...base };
-	for (const level of ["off", "minimal", "low", "medium", "high", "xhigh", "max"] as const) {
+	for (const level of ["off", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"] as const) {
 		const params = override[level];
 		if (params) merged[level] = { ...base?.[level], ...params };
 	}
@@ -195,6 +197,8 @@ function applyModelOverride(model: Model<Api>, override: ModelsJsonModelOverride
 			: model.cost,
 		promptCache: override.promptCache ? { ...model.promptCache, ...override.promptCache } : model.promptCache,
 		contextWindow: override.contextWindow ?? model.contextWindow,
+		maxContextWindow: override.maxContextWindow ?? model.maxContextWindow,
+		defaultThinkingLevel: override.defaultThinkingLevel ?? model.defaultThinkingLevel,
 		maxTokens: override.maxTokens ?? model.maxTokens,
 		samplingParams: override.samplingParams
 			? { ...model.samplingParams, ...override.samplingParams }
@@ -240,6 +244,8 @@ function modelFromJson(
 		cost: definition.cost ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 		promptCache: definition.promptCache,
 		contextWindow: definition.contextWindow ?? 128000,
+		maxContextWindow: definition.maxContextWindow,
+		defaultThinkingLevel: definition.defaultThinkingLevel,
 		maxTokens: definition.maxTokens ?? 16384,
 		samplingParams: definition.samplingParams,
 		samplingParamsByThinkingLevel: definition.samplingParamsByThinkingLevel,

@@ -36,14 +36,14 @@ describe("max thinking level", () => {
 			const model = getModel("openai-codex", modelId);
 			expect(model).toBeDefined();
 			expect(model?.thinkingLevelMap).toMatchObject({ xhigh: "xhigh", max: "max" });
+			// Official Codex metadata no longer advertises off/minimal for these models.
 			expect(getSupportedThinkingLevels(model!)).toEqual([
-				"off",
-				"minimal",
 				"low",
 				"medium",
 				"high",
 				"xhigh",
 				"max",
+				...(modelId === "gpt-5.6-sol" || modelId === "gpt-5.6-terra" || modelId === "gpt-6-sol" ? ["ultra"] : []),
 			]);
 		},
 	);

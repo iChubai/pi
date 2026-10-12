@@ -12,6 +12,7 @@
 - [Trace Studio](../packages/coding-agent/examples/extensions/trace-viewer/README.md)：本地只读会话、模型调用和统计查看器，仅监听 `127.0.0.1`。旧 `npm:pi-trace-viewer` 扩展会被禁用。
 - `SoL-Pi`：固定到 commit `03529c710269d3e3336a033cead49a95189987f1`；新配置只启用 Observation Pack，其余三个机制关闭。
 - `@narumitw/pi-usage@0.65.0`：订阅用量和可选 Codex Fast 模式。
+- Codex 官方目录：按账户实时同步模型默认/最大上下文、输入模态、推理档位（含官方支持的 `ultra`）与默认档位；保留离线回退和用户覆盖，不把所有模型统一设成 872k。
 - 核心修复：将上游 request-buffer 溢出识别为输入大小错误，避免原样重试，让会话走有次数上限的压缩恢复；包含回归测试。
 
 不包含 API 密钥、登录状态、历史会话、真实 trace 数据、生成资产或模型发现缓存。MCP 适配器不等于已经配置图像/视频服务：服务需要自行选择并配置。
@@ -40,7 +41,15 @@ node customizations/setup.mjs
 
 ### Pi 核心修复与扩展的区别
 
-`setup.mjs` 只安装扩展，不会替换已安装 Pi 的核心代码。普通发布版 Pi 能加载这些扩展，但只有运行本 fork 的源码或自己构建的版本才包含 request-buffer 溢出修复。源码开发需要安装根目录依赖，并按仓库的 [开发说明](../README.md#development) 准备模型数据；随后可用 `./pi-test.sh` 启动本 fork。不要把 `setup.mjs` 的成功当成核心修复已经生效。
+`setup.mjs` 只安装扩展，不会替换已安装 Pi 的核心代码。普通发布版 Pi 能加载这些扩展，但只有运行本 fork 的源码或自己构建的版本才包含 request-buffer 溢出修复和 Codex 官方目录刷新。源码开发需要安装根目录依赖，并按仓库的 [开发说明](../README.md#development) 准备模型数据；随后可用 `./pi-test.sh` 启动本 fork。不要把 `setup.mjs` 的成功当成核心修复已经生效。
+
+### Codex 官方模型目录
+
+本 fork 用已登录账户的 OpenAI Codex 目录覆盖静态元数据，避免较旧的 pi.dev 缓存把窗口改回 272k。`pi update --models` 可强制刷新；只请求元数据，不进行模型生成。按账户隔离缓存，每五分钟可重新校验，离线使用本机缓存或仓库回退。
+
+2026-10-12 查询结果：`gpt-6.1-sol` 默认 500k、最大 872k；其余已列出的 GPT-6/GPT-5.6 模型默认 272k、最大 872k；`gpt-5.5` 默认及最大都是 272k。最大窗口只是元数据，不会自动启用。价格和输出 token 限制不来自该官方接口，不据此改写。模型默认推理档位只在没有用户设置时使用。
+
+这部分需要运行本 fork 的核心；`setup.mjs` 不会给已安装 Pi 1.1.0 自动加上新目录和 `ultra` 支持。源码启动方式见上面的核心说明。
 
 ### Codex、素材服务与本地查看器
 

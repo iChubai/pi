@@ -7,6 +7,7 @@ import {
 	ModelInputLimitsSchema,
 	ModelInputModalitySchema,
 	ModelPromptCacheSchema,
+	ModelThinkingLevelSchema,
 	ThinkingLevelMapSchema,
 } from "@earendil-works/pi-ai/providers/model-schema";
 import { type Static, Type } from "typebox";
@@ -25,6 +26,7 @@ const SamplingParamsByThinkingLevelSchema = Type.Object({
 	high: Type.Optional(SamplingParamsSchema),
 	xhigh: Type.Optional(SamplingParamsSchema),
 	max: Type.Optional(SamplingParamsSchema),
+	ultra: Type.Optional(SamplingParamsSchema),
 });
 
 const PositiveTokenCountSchema = Type.Number({ exclusiveMinimum: 0 });
@@ -41,6 +43,8 @@ const ModelDefinitionSchema = Type.Object({
 	cost: Type.Optional(ModelCostSchema),
 	promptCache: Type.Optional(ModelPromptCacheSchema),
 	contextWindow: Type.Optional(PositiveTokenCountSchema),
+	maxContextWindow: Type.Optional(PositiveTokenCountSchema),
+	defaultThinkingLevel: Type.Optional(ModelThinkingLevelSchema),
 	maxTokens: Type.Optional(PositiveTokenCountSchema),
 	samplingParams: Type.Optional(SamplingParamsSchema),
 	samplingParamsByThinkingLevel: Type.Optional(SamplingParamsByThinkingLevelSchema),
@@ -57,6 +61,8 @@ const ModelOverrideSchema = Type.Object({
 	cost: Type.Optional(Type.Partial(ModelCostSchema)),
 	promptCache: Type.Optional(ModelPromptCacheSchema),
 	contextWindow: Type.Optional(PositiveTokenCountSchema),
+	maxContextWindow: Type.Optional(PositiveTokenCountSchema),
+	defaultThinkingLevel: Type.Optional(ModelThinkingLevelSchema),
 	maxTokens: Type.Optional(PositiveTokenCountSchema),
 	samplingParams: Type.Optional(SamplingParamsSchema),
 	samplingParamsByThinkingLevel: Type.Optional(SamplingParamsByThinkingLevelSchema),
