@@ -86,4 +86,6 @@ node --test customizations/setup.test.mjs
 node --test customizations/langfuse-enhanced/test/trace-data.test.ts
 ```
 
+运行 Trace Studio 的回归测试或仓库完整测试前，另需 `npm ci --prefix packages/coding-agent/examples/extensions/trace-viewer --ignore-scripts --legacy-peer-deps`；根目录 workspace 安装不会安装这个独立示例包的依赖。两份 CI workflow 均包含该步骤。素材、Codex 和核心回归测试使用合成请求，不消耗模型或素材服务额度。
+
 回退时，在 `~/.pi/agent/settings.json` 删除这份 checkout 的 `langfuse-enhanced` package 声明，再重新启用已有官方 plugin；若未安装官方包，可使用 `pi install npm:@langfuse/pi-observability-plugin@0.1.2`。不要同时启用两份 tracing 扩展。完整 settings 备份可作参考，但整份恢复会覆盖安装后的其他设置修改。
