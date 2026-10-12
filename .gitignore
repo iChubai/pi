@@ -15,6 +15,12 @@ packages/ai/src/providers/.model-generation-*/
 # Environment
 .env
 
+# Private customization configuration and local verification data
+langfuse.json
+settings.before-customizations.*.json
+/customizations/private/
+/customizations/langfuse-enhanced/verification.json
+
 # Editor files
 .vscode/
 .zed/

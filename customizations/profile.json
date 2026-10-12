@@ -1,0 +1,8 @@
+{
+	"packages": [
+		"./langfuse-enhanced",
+		"npm:pi-mcp-adapter@5.2.0",
+		"git:github.com/langfuse/skills@b86532b77f16f1e27c7cffa32bb632aa3cd9a352"
+	],
+	"extensions": ["-builtin:mcp"]
+}

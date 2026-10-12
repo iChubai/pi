@@ -1,0 +1,7 @@
+{
+	"publicKey": "",
+	"secretKey": "",
+	"baseUrl": "https://us.cloud.langfuse.com",
+	"environment": "development",
+	"maskPii": true
+}

@@ -195,6 +195,10 @@ I regularly publish my own `pi-mono` work sessions here:
 
 - [badlogicgames/pi-mono on Hugging Face](https://huggingface.co/datasets/badlogicgames/pi-mono)
 
+## Personal customizations
+
+This fork includes a portable Langfuse tracing extension, a pinned MCP adapter, and official Langfuse skills. See [cross-machine setup](customizations/README.md). Credentials remain outside the repository.
+
 ## License
 
 MIT

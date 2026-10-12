@@ -1,0 +1,9 @@
+{
+	"extends": "../tsconfig.json",
+	"include": [
+		"langfuse-enhanced/src/**/*.ts",
+		"langfuse-enhanced/test/**/*.ts",
+		"../packages/coding-agent/src/**/*.d.ts"
+	],
+	"exclude": ["**/node_modules/**"]
+}
