@@ -1,0 +1,11 @@
+{
+  "operation": "music",
+  "query": {"output_format": "auto"},
+  "body": {
+    "model_id": "music_v2_5",
+    "prompt": "A restrained ambient science-fiction exploration cue, soft analog synthesizers, sparse percussion, no vocals. Leave space for dialogue and environmental sounds.",
+    "music_length_ms": 30000,
+    "force_instrumental": true,
+    "store_for_inpainting": false
+  }
+}

@@ -1,4 +1,5 @@
 import type { AssistantMessage } from "../types.ts";
+import { isContextOverflow } from "./overflow.ts";
 
 function buildProviderErrorPattern(patterns: readonly string[]): RegExp {
 	return new RegExp(patterns.join("|"), "i");
@@ -50,7 +51,6 @@ const RETRYABLE_PROVIDER_ERROR_PATTERN = buildProviderErrorPattern([
 	// Wrapper/provider text for transient upstream failures, including OpenRouter
 	// "Provider returned error" responses (#2264).
 	"provider.?returned.?error",
-	"exceeded request buffer limit while retrying upstream",
 
 	// Network, proxy, and fetch transport failures. This includes OpenAI Codex
 	// raw-fetch failures such as "upstream connect", "connection refused", and
@@ -243,14 +243,15 @@ export async function retryAssistantCall(
 /**
  * Classifies whether a failed assistant message looks like a transient provider
  * or transport error, so callers can decide if the last assistant turn should be
- * restarted.
+ * restarted. Input-size errors are not transient: callers must reduce context
+ * instead of replaying the same request, even when a gateway wraps them in a 5xx.
  *
  * This does not implement retry policy. Callers should first handle context
  * overflow separately, then apply their own retry budget, backoff, and reporting
  * before restarting the assistant turn.
  */
 export function isRetryableAssistantError(message: AssistantMessage): boolean {
-	if (message.stopReason !== "error" || !message.errorMessage) return false;
+	if (message.stopReason !== "error" || !message.errorMessage || isContextOverflow(message)) return false;
 	const errorMessage = message.errorMessage;
 	if (NON_RETRYABLE_PROVIDER_LIMIT_ERROR_PATTERN.test(errorMessage)) return false;
 	return RETRYABLE_PROVIDER_ERROR_PATTERN.test(errorMessage);

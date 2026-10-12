@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "state_dir": "./.video-assets/ltx",
+  "default_profile": "ltx-distilled",
+  "hosts": {
+    "video-host": {
+      "transport": "ssh",
+      "target": "SET_TO_AUTHORIZED_SSH_ALIAS",
+      "root": "/home/CHANGE_ME/.local/share/pi-remote-assets",
+      "python": "python3",
+      "timeout_seconds": 120
+    }
+  },
+  "profiles": {
+    "ltx-distilled": {
+      "host": "video-host",
+      "resource": "SET_TO_AUTHORIZED_GPU_RESOURCE",
+      "hardware": "SET_TO_VALIDATED_DEVICE",
+      "model": "Lightricks/LTX-2.5",
+      "revision": "distilled-deployment-v1",
+      "tasks": ["video-generation"],
+      "command": [
+        "/opt/CHANGE_ME/ltx-env/bin/python",
+        "/opt/CHANGE_ME/pi-adapters/ltx_adapter.py",
+        "--pipeline",
+        "distilled"
+      ],
+      "cwd": "/opt/CHANGE_ME/LTX-2",
+      "code": {
+        "path": "/opt/CHANGE_ME/LTX-2",
+        "revision": "9ec55f9f22798a3198d9c923856824821bc3317e"
+      },
+      "weights": {
+        "transformer": {
+          "path": "/opt/CHANGE_ME/ltx-2.5/diffusion_models/ltx-2.5-22b-distilled-transformer-bf16.safetensors",
+          "revision": "SET_TO_WEIGHT_REVISION"
+        },
+        "text_encoder": {
+          "path": "/opt/CHANGE_ME/ltx-2.5/text_encoders/gemma4-12b-with-proj-ltx-2.5-bf16.safetensors",
+          "revision": "SET_TO_WEIGHT_REVISION"
+        },
+        "video_vae": {
+          "path": "/opt/CHANGE_ME/ltx-2.5/vae/ltx-2.5-video-vae-bf16.safetensors",
+          "revision": "SET_TO_WEIGHT_REVISION"
+        },
+        "audio_vae": {
+          "path": "/opt/CHANGE_ME/ltx-2.5/vae/ltx-2.5-audio-vae-bf16.safetensors",
+          "revision": "SET_TO_WEIGHT_REVISION"
+        },
+        "spatial_upsampler": {
+          "path": "/opt/CHANGE_ME/ltx-2.5/latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors",
+          "revision": "SET_TO_WEIGHT_REVISION"
+        }
+      },
+      "python_modules": ["torch", "ltx_pipelines"],
+      "env": {"CUDA_VISIBLE_DEVICES": "SET_TO_AUTHORIZED_DEVICE_INDEX"},
+      "max_seconds": 1800,
+      "cancel": "process-group"
+    }
+  }
+}

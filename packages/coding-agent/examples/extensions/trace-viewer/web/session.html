@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Pi Trace Viewer · Session</title><link rel="stylesheet" href="/session.css">
+</head>
+<body>
+	<a class="skip-link" href="#content">Skip to content</a>
+	<header class="topbar">
+		<div class="brand"><span class="brand-mark" aria-hidden="true"></span> PI TRACE</div>
+		<nav class="mode-switch" aria-label="Viewer mode"><button class="mode-btn active" aria-current="page">Session</button><button class="mode-btn" data-view="calls">LLM Calls</button><button class="mode-btn" data-view="overview">Statistics</button></nav>
+		<div class="topbar-spacer"></div><label class="session-picker-label" for="session-picker">Session</label><select id="session-picker" class="session-picker" aria-label="Select session"><option>Connecting…</option></select>
+		<span id="live-status" class="live-status" role="status" aria-live="polite"><span class="status-dot"></span>connecting</span>
+		<button id="theme" class="icon-btn" aria-label="Switch color theme" title="Switch color theme">◐</button>
+		<button id="refresh-btn" class="icon-btn refresh-button" title="Refresh data" aria-label="Refresh data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7"/></svg></button>
+	</header>
+	<div id="app">
+		<button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-label="Open sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+		<div id="sidebar-overlay"></div>
+		<aside id="sidebar" aria-label="Session tree"><div class="sidebar-header"><div class="sidebar-search-row"><input id="tree-search" class="sidebar-search" type="search" maxlength="256" placeholder="Search…" aria-label="Search full session content"><button id="sidebar-close" class="small-btn" aria-label="Close sidebar">×</button></div><div class="sidebar-filters" role="group" aria-label="Session filters"><button class="filter-btn active" data-filter="default" aria-pressed="true">Default</button><button class="filter-btn" data-filter="no-tools">No-tools</button><button class="filter-btn" data-filter="user">User</button><button class="filter-btn" data-filter="labeled">Labeled</button><button class="filter-btn" data-filter="all">All</button></div></div><div id="tree-container" class="tree-container" role="tree" tabindex="0" aria-label="Session tree"></div><div class="sidebar-controls"><button class="small-btn" id="follow" aria-pressed="true">Follow active leaf</button><button class="small-btn" id="search-again">Search again</button></div><div id="tree-status" class="tree-status" aria-live="polite"></div></aside>
+		<div id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" tabindex="0" aria-valuemin="240" aria-valuemax="840" aria-valuenow="400"></div>
+		<main id="content" tabindex="-1"><div id="empty-state" class="empty-state" hidden><div class="empty-glyph">⌁</div><h1>No session selected</h1><p>Start pi with this extension enabled, then return here.</p></div><section id="session-view"><div id="header-container"></div><div id="conversation"><div class="transcript-paging"><span class="conversation-status"></span><div><button class="small-btn" data-older>Older</button><button class="small-btn" data-newer>Newer</button><button class="small-btn" data-latest>Selected node</button></div></div><div id="messages" class="conversation-list" aria-label="Branch transcript"></div></div></section></main>
+	</div>
+	<dialog id="image-viewer" class="session-image-viewer" aria-label="Image preview"><header><span>Original attachment</span><div><a class="small-btn" download>Download original</a><button class="modal-close" aria-label="Close image preview">×</button></div></header><img alt="Expanded message attachment"></dialog>
+	<dialog id="entry-inspector" aria-label="Original session entry"><header><b>Original entry</b><button class="small-btn" data-close-entry>Close</button></header><div class="entry-detail"></div></dialog>
+	<div id="toast" class="toast" role="status" aria-live="polite"></div>
+	<script src="/vendor/marked.js"></script><script src="/vendor/highlight.js"></script><script type="module" src="/session-app.js"></script>
+</body>
+</html>

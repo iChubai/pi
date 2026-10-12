@@ -186,6 +186,51 @@ for (const block of result.output) if (block.type === "image") image(block);
 
 Extensions generate images through `ctx.modelRegistry.generateImages()`, without codemode.
 
+### Codex subscription image generation
+
+The [Codex image extension](../examples/extensions/codex-image.ts) adds a `codex_image` tool that calls GPT Image 2 through Codex's ChatGPT subscription endpoint, without OpenRouter or an API key:
+
+```bash
+pi -e ./packages/coding-agent/examples/extensions/codex-image.ts
+```
+
+Authenticate in pi with `/login openai-codex`, then ask the agent to generate or edit an image. This extension does not use the separate `/login openai` flow or credentials saved by the Codex CLI. The server enforces your account's image access and quota; enabling the tool does not grant access.
+
+The generation and editing workflows follow Codex CLI `0.162.1`'s `image_gen.imagegen` tool. Pi exposes them as `codex_image`, not as a `models.generateImages()` provider:
+
+- **Generate:** supply `prompt` and omit both reference arguments.
+- **Edit or use references:** supply `referenced_image_paths` with up to five local paths, in order. Relative paths resolve against the working directory. Inspect unseen references with `read` first. PNG, JPEG, and WebP originals are sent without resizing or re-encoding; other supported bitmap formats are decoded to PNG.
+- **Continue from conversation images:** supply `num_last_images_to_include` between 1 and 5, without a nonempty path list. This selects the newest images in chronological order from the current branch's context, including user attachments and tool results. Compacted, omitted, and abandoned-branch images are excluded. Saved originals are preferred over resized previews when their contents still match; otherwise the visible image is used. Requesting more images than are available fails rather than silently changing the selection.
+- **Transparent backgrounds:** set `transparent_background: true`. For edits, preserve existing transparency unless the user asks to change it. The alternative `background` option accepts `auto`, `opaque`, or `transparent`; do not combine it with `transparent_background`. The default is `opaque`.
+
+For example, an edit call can use `{ prompt: "Give this kitten a small red hat", referenced_image_paths: ["kitten.png"], outputPath: "kitten-with-hat.png" }`. If a target has no local path, use the smallest recent-image window that includes every target. If five images cannot cover them all, ask the user to attach them again.
+
+The tool also accepts requested `size` and `quality`, both defaulting to `auto`, and an optional new `.png` output path. The backend can return PNG dimensions different from the requested size; this extension preserves the original rather than resizing it to force exact dimensions.
+
+By default, originals are saved under `<agent-dir>/generated-images/` with owner-only permissions, and an image preview is returned. Existing files and symlinks are never overwritten. A late save failure still returns the generated image with a warning instead of spending quota again. Generation IDs, request IDs, and reported transparency are retained in tool-result details. Requests can be canceled, time out after ten minutes, and are not automatically retried or routed to a paid API-key service. Cancellation and timeout abort the client request; they do not guarantee that server-side generation stops or that quota is refunded.
+
+In codemode, the tool returns Codex-compatible `image_url` and optional `output_hint` fields. Show the image rather than printing its base64:
+
+```js
+const result = await tools.codex_image({ prompt: "A cute kitten", outputPath: "kitten.png" });
+image(result.image_url);
+if (result.output_hint) text(result.output_hint);
+```
+
+Images are already displayed in tool results; do not display them again with Markdown links. Copy saved original PNGs without re-encoding when another location is requested.
+
+## Subscription usage and Codex Fast mode
+
+The third-party [@narumitw/pi-usage](https://www.npmjs.com/package/@narumitw/pi-usage) package provides `/usage` for supported providers and `/fast` for supported Codex models:
+
+```bash
+pi install npm:@narumitw/pi-usage@0.65.0
+```
+
+Run `/reload` in an existing session, then `/usage` to inspect provider usage. `/fast` toggles Codex Fast mode; it is disabled by default and uses more subscription allowance when enabled. The package stores its preferences in `<agent-dir>/pi-usage.json`.
+
+Provider support varies; this version does not query Claude subscription quotas. Account-wide provider usage is separate from the session token usage shown by `/session`. Review the package's provider documentation before using its commands.
+
 ## Add a custom provider
 
 Use an extension when the provider needs custom streaming, model discovery, or authentication behavior. See [Custom Providers](custom-provider.md) for the extension workflow.

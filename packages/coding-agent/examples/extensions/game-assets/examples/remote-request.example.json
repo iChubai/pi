@@ -1,0 +1,7 @@
+{
+  "task": "image-to-3d",
+  "inputs": [{"name": "reference.png", "path": "./reference.png"}],
+  "parameters": {
+    "seed": 42
+  }
+}

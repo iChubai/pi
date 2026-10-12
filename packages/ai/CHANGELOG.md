@@ -5,6 +5,7 @@
 ### Fixed
 
 - Fixed Mistral streams being aborted mid-generation (e.g. during long thinking) after the request timeout; the timeout now applies only to waiting for response headers ([#10609](https://github.com/earendil-works/pi/issues/10609))
+- Fixed input-size errors, including upstream request-buffer overflow wrapped in a 5xx response, being retried with unchanged requests instead of returned for context reduction
 
 ## [1.1.0] - 2026-10-07
 

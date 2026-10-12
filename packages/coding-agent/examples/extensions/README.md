@@ -32,6 +32,7 @@ cp permission-gate.ts ~/.pi/agent/extensions/
 |-----------|-------------|
 | `todo.ts` | Todo list tool + `/todos` command with custom rendering and state persistence |
 | `hello.ts` | Minimal custom tool example |
+| [`codex-image.ts`](codex-image.ts) | Generate or edit original PNGs using Codex ChatGPT subscription OAuth, with local or conversation references and transparent backgrounds |
 | `question.ts` | Demonstrates `ctx.ui.select()` for asking the user questions with custom UI |
 | `questionnaire.ts` | Multi-question input with tab bar navigation between questions |
 | `tool-override.ts` | Override built-in tools (e.g., add logging/access control to `read`) |
@@ -106,6 +107,7 @@ cp permission-gate.ts ~/.pi/agent/extensions/
 | Extension | Description |
 |-----------|-------------|
 | `dynamic-resources/` | Loads skills, prompts, and themes using `resources_discover` |
+| [`game-assets/`](game-assets/) | One package for images, Meshy 3D/animation, ElevenLabs audio, H3/LTX video and optional SSH execution; local GPU inference uses existing tools and native model commands |
 
 ### Messages & Communication
 
@@ -122,6 +124,7 @@ cp permission-gate.ts ~/.pi/agent/extensions/
 |-----------|-------------|
 | `session-name.ts` | Name sessions for the session selector via `setSessionName` |
 | `bookmark.ts` | Bookmark entries with labels for `/tree` navigation via `setLabel` |
+| [`trace-viewer/`](trace-viewer/) | Local session observatory with usage/latency/payload charts, branch-aware statistics, virtualized history and on-demand call inspection |
 
 ### Custom Providers
 

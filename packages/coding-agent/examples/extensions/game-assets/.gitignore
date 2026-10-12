@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.game-assets/
+.video-assets/
+.remote-assets/
+config.local.json

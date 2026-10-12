@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "state_dir": "./.remote-assets",
+  "default_profile": "image3d-4090",
+  "hosts": {
+    "desktop-a": {
+      "transport": "ssh",
+      "target": "gpu-desktop-a",
+      "root": "/home/CHANGE_ME/.local/share/pi-remote-assets",
+      "python": "python3",
+      "timeout_seconds": 120
+    },
+    "desktop-b": {
+      "transport": "ssh",
+      "target": "gpu-desktop-b",
+      "root": "/home/CHANGE_ME/.local/share/pi-remote-assets",
+      "python": "python3",
+      "timeout_seconds": 120
+    }
+  },
+  "profiles": {
+    "image3d-4090": {
+      "host": "desktop-a",
+      "resource": "gpu-0",
+      "hardware": "NVIDIA RTX 4090",
+      "tasks": ["image-to-3d"],
+      "model": "SET_TO_MODEL_ID",
+      "revision": "deployment-v1",
+      "command": ["/opt/CHANGE_ME/venv/bin/python", "/opt/CHANGE_ME/model-code/pi_adapter.py"],
+      "cwd": "/opt/CHANGE_ME/model-code",
+      "code": {"path": "/opt/CHANGE_ME/model-code", "revision": "SET_TO_CODE_VERSION"},
+      "weights": {
+        "shape": {"path": "/opt/CHANGE_ME/weights/shape-snapshot", "revision": "REPLACE_WITH_WEIGHT_SNAPSHOT_ID"}
+      },
+      "python_modules": ["torch", "PIL"],
+      "env": {"CUDA_VISIBLE_DEVICES": "0"},
+      "max_seconds": 900,
+      "cancel": "process-group"
+    },
+    "image3d-a6000": {
+      "host": "desktop-b",
+      "resource": "gpu-0",
+      "hardware": "NVIDIA RTX A6000",
+      "tasks": ["image-to-3d"],
+      "model": "SET_TO_MODEL_ID",
+      "revision": "deployment-v1",
+      "command": ["/opt/CHANGE_ME/venv/bin/python", "/opt/CHANGE_ME/model-code/pi_adapter.py"],
+      "cwd": "/opt/CHANGE_ME/model-code",
+      "code": {"path": "/opt/CHANGE_ME/model-code", "revision": "SET_TO_CODE_VERSION"},
+      "weights": {
+        "shape": {"path": "/opt/CHANGE_ME/weights/shape-snapshot", "revision": "REPLACE_WITH_WEIGHT_SNAPSHOT_ID"}
+      },
+      "python_modules": ["torch", "PIL"],
+      "env": {"CUDA_VISIBLE_DEVICES": "0"},
+      "max_seconds": 900,
+      "cancel": "process-group"
+    }
+  }
+}

@@ -31,6 +31,7 @@ function fixture(t) {
 		"profile.json",
 		"langfuse.example.json",
 		"mcp.example.json",
+		"sol-pi.example.json",
 	]) {
 		copyFileSync(join(sourceDir, name), join(baseDir, name));
 	}
@@ -79,14 +80,17 @@ test("merges a portable profile without changing unrelated settings or its input
 		skills: ["existing-skill"],
 		extensions: [],
 	});
-	assert.deepEqual(result.packages.slice(3), [
-		resolve(baseDir, "langfuse-enhanced"),
-		...profile.packages.slice(1),
-	]);
+	assert.deepEqual(
+		result.packages.slice(3),
+		profile.packages.map((source) =>
+			source.startsWith(".") ? resolve(baseDir, source) : source,
+		),
+	);
 	assert.deepEqual(result.extensions, [
 		"existing-extension.ts",
 		"-builtin:mcp",
 	]);
+	assert.equal(result.defaultModel, profile.settings.defaultModel);
 	assert.deepEqual(mergeProfile(result, profile, baseDir, agentDir), result);
 });
 
@@ -110,6 +114,40 @@ test("disables an unversioned official tracer and relocates a relative enhanced 
 	assert.equal(result.packages.length, profile.packages.length + 1);
 });
 
+test("relocates managed assets and disables the older viewer without losing its other resources", (t) => {
+	const { baseDir, agentDir } = fixture(t);
+	const settings = {
+		defaultModel: "custom-model",
+		packages: [
+			{ source: "npm:pi-trace-viewer@0.2.0", skills: ["keep"] },
+			"/previous/checkout/packages/coding-agent/examples/extensions/trace-viewer",
+			"/previous/checkout/packages/coding-agent/examples/extensions/game-assets",
+			"/previous/checkout/packages/coding-agent/examples/extensions/codex-image.ts",
+			"npm:@narumitw/pi-usage@0.64.0",
+			"git:github.com/NVlabs/SoL-Pi@previous",
+		],
+		extensions: [
+			"/previous/checkout/.pi/extensions/codex-image.ts",
+			"unrelated.ts",
+		],
+	};
+	const result = mergeProfile(settings, profile, baseDir, agentDir);
+	assert.equal(result.defaultModel, "custom-model");
+	assert.deepEqual(result.packages[0], {
+		source: "npm:pi-trace-viewer@0.2.0",
+		skills: ["keep"],
+		extensions: [],
+	});
+	assert.equal(result.packages.length, profile.packages.length + 1);
+	assert.equal(result.extensions[0], "unrelated.ts");
+	assert.ok(
+		result.packages.includes(
+			resolve(baseDir, "../.pi/extensions/codex-image.ts"),
+		),
+	);
+	assert.deepEqual(mergeProfile(result, profile, baseDir, agentDir), result);
+});
+
 test("creates private empty templates and installs only pinned remote packages without scripts", (t) => {
 	const context = fixture(t);
 	const result = setup(context);
@@ -126,7 +164,14 @@ test("creates private empty templates and installs only pinned remote packages w
 	assert.deepEqual(readJson(join(context.agentDir, "mcp.json")), {
 		mcpServers: {},
 	});
-	for (const name of ["settings", "langfuse", "mcp"])
+	assert.deepEqual(readJson(join(context.agentDir, "sol-pi.json")), {
+		version: 1,
+		actionFusion: false,
+		observationPack: true,
+		evidencePreservingReducer: false,
+		onlineContextCompact: false,
+	});
+	for (const name of ["settings", "langfuse", "mcp", "sol-pi"])
 		assertPrivate(join(context.agentDir, `${name}.json`));
 	assert.deepEqual(
 		context.calls.map(({ command, args }) => [command, args]),
@@ -142,7 +187,22 @@ test("creates private empty templates and installs only pinned remote packages w
 					"--legacy-peer-deps",
 				],
 			],
-			...profile.packages.slice(1).map((source) => ["pi", ["install", source]]),
+			[
+				"npm",
+				[
+					"ci",
+					"--prefix",
+					resolve(
+						context.baseDir,
+						"../packages/coding-agent/examples/extensions/trace-viewer",
+					),
+					"--ignore-scripts",
+					"--legacy-peer-deps",
+				],
+			],
+			...profile.packages
+				.filter((source) => !source.startsWith("."))
+				.map((source) => ["pi", ["install", source]]),
 		],
 	);
 	for (const call of context.calls.slice(1)) {
@@ -161,6 +221,8 @@ test("backs up settings and retains credentials, server configuration and post-i
 	const mcpConfig = '{"mcpServers":{"existing":{"command":"existing-tool"}}}\n';
 	writeFileSync(join(context.agentDir, "langfuse.json"), privateConfig);
 	writeFileSync(join(context.agentDir, "mcp.json"), mcpConfig);
+	const solConfig = '{"version":1,"observationPack":false}\n';
+	writeFileSync(join(context.agentDir, "sol-pi.json"), solConfig);
 	const runPi = (args, options) => {
 		context.runPi(args, options);
 		if (args[0] === "install") {
@@ -181,6 +243,10 @@ test("backs up settings and retains credentials, server configuration and post-i
 	assert.equal(
 		readFileSync(join(context.agentDir, "mcp.json"), "utf8"),
 		mcpConfig,
+	);
+	assert.equal(
+		readFileSync(join(context.agentDir, "sol-pi.json"), "utf8"),
+		solConfig,
 	);
 	const first = readJson(settingsPath);
 	setup(context);
@@ -213,6 +279,7 @@ test("rejects malformed package declarations without modifying settings", (t) =>
 		{ packages: "wrong" },
 		{ extensions: {} },
 		{ packages: [{}] },
+		{ extensions: [null] },
 	]) {
 		const original = JSON.stringify(settings);
 		writeFileSync(path, original);

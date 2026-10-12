@@ -7,8 +7,14 @@
 - `langfuse-enhanced/`：基于官方 `@langfuse/pi-observability-plugin@0.1.2` 的 MIT fork，保留完整模型输入/输出、实际返回的 thinking、工具调用、会话与子代理关联、用量、时序和媒体，并在导出副本上脱敏。
 - `pi-mcp-adapter@5.2.0`：通过官方 Pi package 安装机制加载，关闭 Pi 内置 MCP，避免两套实现重复运行。
 - 官方 `github.com/langfuse/skills`：固定到 commit `b86532b77f16f1e27c7cffa32bb632aa3cd9a352`。
+- [Codex image](../packages/coding-agent/examples/extensions/codex-image.ts)：使用 `/login openai-codex` 的订阅凭据生成和编辑原始 PNG，支持本地/会话参考图和透明背景；不需要 OpenRouter 或 API key。
+- [game-assets](../packages/coding-agent/examples/extensions/game-assets/README.md)：七个 skill，组合已有图像接口、Meshy 3D/动画、ElevenLabs 音频、MiniMax H3、LTX-2.5 和可选 SSH 执行/取回。只提供已实现的适配器；候选开源模型不是已经接通的服务。
+- [Trace Studio](../packages/coding-agent/examples/extensions/trace-viewer/README.md)：本地只读会话、模型调用和统计查看器，仅监听 `127.0.0.1`。旧 `npm:pi-trace-viewer` 扩展会被禁用。
+- `SoL-Pi`：固定到 commit `03529c710269d3e3336a033cead49a95189987f1`；新配置只启用 Observation Pack，其余三个机制关闭。
+- `@narumitw/pi-usage@0.65.0`：订阅用量和可选 Codex Fast 模式。
+- 核心修复：将上游 request-buffer 溢出识别为输入大小错误，避免原样重试，让会话走有次数上限的压缩恢复；包含回归测试。
 
-不包含 API 密钥、登录状态、历史会话、真实 trace 数据或其他本机扩展。MCP 适配器不等于已经配置图像/视频服务：服务需要自行选择并配置。
+不包含 API 密钥、登录状态、历史会话、真实 trace 数据、生成资产或模型发现缓存。MCP 适配器不等于已经配置图像/视频服务：服务需要自行选择并配置。
 
 ## 换机安装
 
@@ -23,14 +29,28 @@ node customizations/setup.mjs
 安装脚本会：
 
 1. 备份已有 `~/.pi/agent/settings.json`，备份权限为 `0600`。
-2. 使用 `npm ci --ignore-scripts --legacy-peer-deps` 安装 Langfuse 扩展的锁定依赖；不安装另一份 Pi runtime。
-3. 安装固定版本的 MCP 适配器和固定 commit 的官方 Langfuse skill，并通过 npm 环境变量禁止安装生命周期脚本。
-4. 保留其他用户设置与 package，只替换这份 profile 管理的声明。旧的增强扩展路径被迁移；已有官方 Langfuse plugin 的扩展被禁用但包不移除，避免重复 tracing。
-5. 在用户目录创建权限为 `0600` 的空 `langfuse.json` 和 `mcp.json` 模板；**不覆盖已有配置内容**。
+2. 使用 `npm ci --ignore-scripts --legacy-peer-deps` 安装 Langfuse 和 Trace Studio 的锁定依赖；不安装另一份 Pi runtime。
+3. 安装固定版本/commit 的 MCP、Langfuse skill、SoL-Pi 和用量扩展，并通过 npm 环境变量禁止安装生命周期脚本。
+4. 加载仓库中的 Codex image、game-assets 和 Trace Studio。保留其他用户设置与 package，只替换这份 profile 管理的声明；迁移旧的本地包路径，禁用已有官方 Langfuse/旧 trace-viewer 扩展但不移除包。Codex 全局配置与仓库自动发现共用同一 wrapper 路径，避免重复注册。
+5. 在用户目录创建权限为 `0600` 的 `langfuse.json`、`mcp.json` 和 `sol-pi.json` 模板；**不覆盖已有配置内容**。新 settings 默认使用 `openai-codex/gpt-6.1-sol` 并折叠 thinking；已有设置优先。
 
 默认适用于 macOS/Linux。Windows 可从 npm script 环境运行，使 `npm_execpath` 可用，并用 `PI_BIN` 指定可执行的 Pi CLI。`PI_CODING_AGENT_DIR` 可指定其他用户配置目录；`PI_BIN` 可指定其他 Pi 可执行文件。
 
 本地扩展路径由安装脚本按当前 checkout 生成，不在仓库中写入机器绝对路径。**保留这个 checkout**；移动目录后重跑脚本更新路径。修改源代码后重启 Pi。脚本可以重跑，但请不要同时运行多个安装器或修改用户 settings。
+
+### Pi 核心修复与扩展的区别
+
+`setup.mjs` 只安装扩展，不会替换已安装 Pi 的核心代码。普通发布版 Pi 能加载这些扩展，但只有运行本 fork 的源码或自己构建的版本才包含 request-buffer 溢出修复。源码开发需要安装根目录依赖，并按仓库的 [开发说明](../README.md#development) 准备模型数据；随后可用 `./pi-test.sh` 启动本 fork。不要把 `setup.mjs` 的成功当成核心修复已经生效。
+
+### Codex、素材服务与本地查看器
+
+在新机器重新运行 `/login openai-codex`；登录状态不会随仓库迁移。如果默认模型在账号中不可用，用 `/model` 选择可用模型。Codex image 使用订阅图像权限和额度，不会自动回退到付费 API。更多参数见 [模型说明](../packages/coding-agent/docs/models.md#codex-subscription-image-generation)。
+
+素材包不包含 Python 模型环境、CUDA、模型权重或 Meshy/ElevenLabs/MiniMax 的密钥。按 [game-assets README](../packages/coding-agent/examples/extensions/game-assets/README.md) 配置所需服务与依赖；SSH 主机、远端环境和本机私密配置需另外设置。
+
+运行 `/trace-view` 打开 Trace Studio，`/trace-view on` 启用详细采集。本地 `.pi-traces/` 可能包含敏感上下文，已被 git 忽略，不应上传。运行 `/usage` 查看支持的订阅用量；`/fast` 默认关闭，开启后可能消耗更多额度。
+
+SoL-Pi 的模板只启用 Observation Pack，不启动额外的摘要模型调用。已有 `sol-pi.json` 保持原样；配置与机制说明见 [上游文档](https://github.com/NVlabs/SoL-Pi/blob/03529c710269d3e3336a033cead49a95189987f1/docs/configuration.md)。
 
 ### Langfuse
 

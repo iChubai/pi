@@ -1,0 +1,10 @@
+{
+  "operation": "tts",
+  "voice_id": "SET_TO_AUTHORIZED_VOICE_ID",
+  "query": {"output_format": "mp3_44100_128"},
+  "body": {
+    "model_id": "eleven_multilingual_v2",
+    "text": "The storm is approaching. Return to the shelter.",
+    "voice_settings": {"stability": 0.5, "similarity_boost": 0.75, "speed": 1.0}
+  }
+}

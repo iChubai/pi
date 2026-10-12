@@ -42,15 +42,12 @@ describe("provider retry classification", () => {
 		).toBe(true);
 	});
 
-	it("matches upstream request buffer exhaustion wording", () => {
-		expect(
-			isRetryableAssistantError(
-				fauxAssistantMessage("", {
-					stopReason: "error",
-					errorMessage: "Error: exceeded request buffer limit while retrying upstream",
-				}),
-			),
-		).toBe(true);
+	it.each([
+		"Error: exceeded request buffer limit while retrying upstream",
+		"503 exceeded request buffer limit while retrying upstream",
+		"503 Requested token count exceeds the model's maximum context length of 131072 tokens.",
+	])("does not retry input-size errors with an unchanged request: %s", (errorMessage) => {
+		expect(isRetryableAssistantError(fauxAssistantMessage("", { stopReason: "error", errorMessage }))).toBe(false);
 	});
 
 	it.each([
@@ -165,6 +162,20 @@ describe("retryAssistantCall", () => {
 		expect(produce).toHaveBeenCalledTimes(1);
 		expect(onRetryScheduled).not.toHaveBeenCalled();
 		expect(onRetryFinished).not.toHaveBeenCalled();
+	});
+
+	it("does not replay a request that exceeds the upstream request buffer", async () => {
+		const produce = vi.fn(async () =>
+			fauxAssistantMessage("", {
+				stopReason: "error",
+				errorMessage: "503 exceeded request buffer limit while retrying upstream",
+			}),
+		);
+		const onRetryScheduled = vi.fn();
+		const response = await retryAssistantCall(produce, enabled, undefined, { onRetryScheduled });
+		expect(response.stopReason).toBe("error");
+		expect(produce).toHaveBeenCalledTimes(1);
+		expect(onRetryScheduled).not.toHaveBeenCalled();
 	});
 
 	it("retries a transient error up to maxRetries then returns the final error", async () => {

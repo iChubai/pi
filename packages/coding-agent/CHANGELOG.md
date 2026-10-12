@@ -6,6 +6,11 @@
 
 - Published generated configuration schemas for models, settings, keybindings, and themes at `https://pi.dev/schemas/*.schema.json`. The theme schema moved to `https://pi.dev/schemas/theme.schema.json`; themes loaded during startup now receive the same schema validation as later reloads. Update theme `$schema` references, define reusable colors under `vars`, and remove unsupported metadata.
 
+### Added
+
+- Added a Codex image extension example that generates and edits GPT Image 2 PNGs using Codex ChatGPT OAuth credentials, supports up to five local or recent-conversation reference images and transparent backgrounds, saves originals, and returns previews or codemode image output without requiring OpenRouter
+- Added a local Trace Studio extension example retaining the original Session frontend and sharing its visual style with LLM Calls and Statistics, with incremental indexes, variable-height virtualized trees and paged branch transcripts, full-content search, lazy context/provider inspection, live streams, original-image zoom/downloads, separate usage/latency/payload charts, and captured tool timings
+
 ### Changed
 
 - Changed the `showHardwareCursor` setting to use only the terminal cursor instead of also drawing Pi's reverse-video cursor
@@ -16,6 +21,7 @@
 
 - Fixed Mistral streams being aborted mid-generation (e.g. during long thinking) after the request timeout; the timeout now applies only to waiting for response headers ([#10609](https://github.com/earendil-works/pi/issues/10609))
 - Fixed a symlinked `AGENTS.md` in a git worktree nested inside its main repo causing no project context file to load ([#10681](https://github.com/earendil-works/pi/issues/10681))
+- Fixed upstream request-buffer overflow triggering unchanged-request retries instead of bounded compact-and-retry recovery
 
 ## [1.1.0] - 2026-10-07
 

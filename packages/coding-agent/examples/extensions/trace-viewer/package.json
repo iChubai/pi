@@ -1,0 +1,11 @@
+{
+	"name": "pi-trace-studio-local",
+	"version": "0.3.0",
+	"private": true,
+	"type": "module",
+	"description": "Local, incremental session inspector and analytics for pi",
+	"license": "MIT",
+	"pi": { "extensions": ["./index.ts"] },
+	"dependencies": { "marked": "18.0.11", "@highlightjs/cdn-assets": "11.11.1" },
+	"peerDependencies": { "@earendil-works/pi-coding-agent": "*" }
+}

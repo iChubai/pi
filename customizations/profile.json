@@ -1,8 +1,18 @@
 {
 	"packages": [
 		"./langfuse-enhanced",
+		"../.pi/extensions/codex-image.ts",
+		"../packages/coding-agent/examples/extensions/game-assets",
+		"../packages/coding-agent/examples/extensions/trace-viewer",
+		"git:github.com/NVlabs/SoL-Pi@03529c710269d3e3336a033cead49a95189987f1",
+		"npm:@narumitw/pi-usage@0.65.0",
 		"npm:pi-mcp-adapter@5.2.0",
 		"git:github.com/langfuse/skills@b86532b77f16f1e27c7cffa32bb632aa3cd9a352"
 	],
-	"extensions": ["-builtin:mcp"]
+	"extensions": ["-builtin:mcp"],
+	"settings": {
+		"defaultProvider": "openai-codex",
+		"defaultModel": "gpt-6.1-sol",
+		"hideThinkingBlock": true
+	}
 }

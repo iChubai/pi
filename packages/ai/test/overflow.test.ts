@@ -30,6 +30,13 @@ function createErrorMessage(errorMessage: string, provider = "ollama"): Assistan
 }
 
 describe("isContextOverflow", () => {
+	it.each([
+		"exceeded request buffer limit while retrying upstream",
+		"Error: 503 exceeded request buffer limit while retrying upstream",
+	])("detects upstream request-buffer overflow without token usage: %s", (errorMessage) => {
+		expect(isContextOverflow(createErrorMessage(errorMessage), 272000)).toBe(true);
+	});
+
 	it("detects explicit Ollama prompt-too-long errors", () => {
 		const message = createErrorMessage("400 `prompt too long; exceeded max context length by 100918 tokens`");
 		expect(isContextOverflow(message, 32768)).toBe(true);

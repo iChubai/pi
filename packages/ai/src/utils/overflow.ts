@@ -4,7 +4,7 @@ import type { AssistantMessage } from "../types.ts";
  * Regex patterns to detect context overflow errors from different providers.
  *
  * These patterns match error messages returned when the input exceeds
- * the model's context window.
+ * the model's context window or an upstream request-size limit.
  *
  * Provider-specific patterns (with example error messages):
  *
@@ -38,6 +38,7 @@ const OVERFLOW_PATTERNS = [
 	/prompt (?:is )?too long/i, // Anthropic and z.ai token overflow
 	/prompt exceeds max length/i, // z.ai CN endpoint token overflow
 	/request_too_large/i, // Anthropic request byte-size overflow (HTTP 413)
+	/exceeded request buffer limit while retrying upstream/i, // Gateway request byte-size overflow
 	/input is too long for requested model/i, // Amazon Bedrock
 	/exceeds the context window/i, // OpenAI (Completions & Responses API)
 	/exceeds (?:the )?(?:model'?s )?maximum context length(?: of [\d,]+ tokens?|\s*\([\d,]+\))/i, // OpenAI-compatible proxies (LiteLLM)

@@ -51,3 +51,12 @@ plans/
 .pi/hf-sessions-backup/
 collect.sh
 packages/agent/docs/extensions/pi-server-artifact/index.md
+
+# Local research notes (runtime packages live under packages/)
+/research/
+
+# Local game projects
+/games/
+
+# Local session traces (may contain sensitive data)
+.pi-traces/

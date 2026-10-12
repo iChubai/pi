@@ -13,7 +13,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { execNpmSync } from "../scripts/npm-command.mjs";
 
 const profileDir = dirname(fileURLToPath(import.meta.url));
-const officialPlugin = /^npm:@langfuse\/pi-observability-plugin(?:@|$)/;
+const supersededPlugin =
+	/^npm:(?:@langfuse\/pi-observability-plugin|pi-trace-viewer)(?:@|$)/;
+const localPath = /^\.{1,2}[/\\]/;
+const managedLocal =
+	/(?:^|[/\\])(?:langfuse-enhanced|trace-viewer|game-assets|codex-image\.ts)[/\\]?$/;
 
 function readSettings(path) {
 	if (!existsSync(path)) return {};
@@ -46,8 +50,13 @@ function packageIdentity(source) {
 
 export function mergeProfile(settings, profile, baseDir, agentDir) {
 	const requested = profile.packages.map((source) =>
-		source.startsWith("./") ? resolve(baseDir, source) : source,
+		localPath.test(source) ? resolve(baseDir, source) : source,
 	);
+	const requestedExtensions = profile.extensions.map((entry) => {
+		const prefix = /^[+-]/.test(entry) ? entry[0] : "";
+		const path = prefix ? entry.slice(1) : entry;
+		return localPath.test(path) ? `${prefix}${resolve(baseDir, path)}` : entry;
+	});
 	const identities = new Set(requested.map(packageIdentity));
 	const packages = [];
 	for (const entry of settings.packages ?? []) {
@@ -56,7 +65,7 @@ export function mergeProfile(settings, profile, baseDir, agentDir) {
 			throw new Error(
 				"Invalid package declaration; no settings were overwritten.",
 			);
-		if (officialPlugin.test(source)) {
+		if (supersededPlugin.test(source)) {
 			packages.push({
 				...(typeof entry === "string" ? { source } : entry),
 				extensions: [],
@@ -68,18 +77,28 @@ export function mergeProfile(settings, profile, baseDir, agentDir) {
 			!source.startsWith("git:") &&
 			!source.includes("://");
 		const resolved = localSource ? resolve(agentDir, source) : source;
-		// Relocate the previous user-local or checkout-local copy without loading two tracers.
-		const previousEnhanced =
-			localSource && /(?:^|[/\\])langfuse-enhanced[/\\]?$/.test(resolved);
-		if (!previousEnhanced && !identities.has(packageIdentity(resolved)))
+		// Relocate the managed local packages instead of loading two copies.
+		const previousLocal = localSource && managedLocal.test(resolved);
+		if (!previousLocal && !identities.has(packageIdentity(resolved)))
 			packages.push(entry);
 	}
 	packages.push(...requested);
-	const extensions = (settings.extensions ?? []).filter(
-		(entry) => entry !== "builtin:mcp" && entry !== "-builtin:mcp",
-	);
-	extensions.push(...profile.extensions);
-	return { ...settings, packages, extensions };
+	const extensions = (settings.extensions ?? []).filter((entry) => {
+		if (typeof entry !== "string")
+			throw new Error(
+				"Invalid extension declaration; no settings were overwritten.",
+			);
+		if (
+			entry === "builtin:mcp" ||
+			entry === "-builtin:mcp" ||
+			requestedExtensions.includes(entry)
+		)
+			return false;
+		const path = /^[+-]/.test(entry) ? entry.slice(1) : entry;
+		return !/(?:^|[/\\])codex-image\.ts$/.test(path);
+	});
+	extensions.push(...requestedExtensions);
+	return { ...profile.settings, ...settings, packages, extensions };
 }
 
 export function setup({
@@ -121,18 +140,23 @@ export function setup({
 			NPM_CONFIG_IGNORE_SCRIPTS: "true",
 		},
 	};
-	runNpm(
-		[
-			"ci",
-			"--prefix",
-			join(baseDir, "langfuse-enhanced"),
-			"--ignore-scripts",
-			"--legacy-peer-deps",
-		],
-		options,
-	);
+	for (const path of [
+		"./langfuse-enhanced",
+		"../packages/coding-agent/examples/extensions/trace-viewer",
+	]) {
+		runNpm(
+			[
+				"ci",
+				"--prefix",
+				resolve(baseDir, path),
+				"--ignore-scripts",
+				"--legacy-peer-deps",
+			],
+			options,
+		);
+	}
 	for (const source of profile.packages) {
-		if (!source.startsWith("./")) runPi(["install", source], options);
+		if (!localPath.test(source)) runPi(["install", source], options);
 	}
 	const current = readSettings(settingsPath);
 	const updated = mergeProfile(current, profile, baseDir, agentDir);
@@ -148,7 +172,7 @@ export function setup({
 			`Could not save ${settingsPath}. Existing settings and any backup remain in place.`,
 		);
 	}
-	for (const name of ["langfuse", "mcp"]) {
+	for (const name of ["langfuse", "mcp", "sol-pi"]) {
 		const path = join(agentDir, `${name}.json`);
 		if (!existsSync(path)) {
 			writeFileSync(path, readFileSync(join(baseDir, `${name}.example.json`)), {

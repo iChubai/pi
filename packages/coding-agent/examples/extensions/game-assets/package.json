@@ -1,0 +1,16 @@
+{
+  "name": "pi-game-assets",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Composable game assets: images, 3D/animation, audio, video, and optional SSH execution for Pi",
+  "keywords": ["pi-package"],
+  "files": ["README.md", "docs", "extensions", "skills", "examples"],
+  "pi": {
+    "extensions": ["./extensions/meshy.ts"],
+    "skills": ["./skills"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}

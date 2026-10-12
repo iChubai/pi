@@ -197,7 +197,7 @@ I regularly publish my own `pi-mono` work sessions here:
 
 ## Personal customizations
 
-This fork includes a portable Langfuse tracing extension, a pinned MCP adapter, and official Langfuse skills. See [cross-machine setup](customizations/README.md). Credentials remain outside the repository.
+This fork includes a request-buffer overflow recovery fix and a portable profile for Codex image generation, game-asset skills, local Trace Studio, SoL-Pi, subscription usage, Langfuse tracing, and MCP. See [cross-machine setup](customizations/README.md). Credentials remain outside the repository; the installer does not replace Pi core.
 
 ## License
 

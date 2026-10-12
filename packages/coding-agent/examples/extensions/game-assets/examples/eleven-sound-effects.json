@@ -1,0 +1,11 @@
+{
+  "operation": "sound-effects",
+  "query": {"output_format": "mp3_44100_128"},
+  "body": {
+    "model_id": "eleven_text_to_sound_v2",
+    "text": "A heavy mechanical door unlatches, slides open, then stops with a soft metallic clunk. No music or speech.",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  }
+}

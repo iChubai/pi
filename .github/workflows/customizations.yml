@@ -4,11 +4,35 @@ on:
   push:
     paths:
       - "customizations/**"
+      - ".pi/extensions/codex-image.ts"
+      - "packages/ai/src/utils/overflow.ts"
+      - "packages/ai/src/utils/retry.ts"
+      - "packages/ai/test/overflow.test.ts"
+      - "packages/ai/test/retry.test.ts"
+      - "packages/coding-agent/examples/extensions/codex-image.ts"
+      - "packages/coding-agent/examples/extensions/game-assets/**"
+      - "packages/coding-agent/examples/extensions/trace-viewer/**"
+      - "packages/coding-agent/test/game-assets-package.test.ts"
+      - "packages/coding-agent/test/suite/agent-session-request-buffer-overflow.test.ts"
+      - "packages/coding-agent/test/suite/codex-image-extension.test.ts"
+      - "packages/coding-agent/test/suite/trace-studio-extension.test.ts"
       - "scripts/npm-command.mjs"
       - ".github/workflows/customizations.yml"
   pull_request:
     paths:
       - "customizations/**"
+      - ".pi/extensions/codex-image.ts"
+      - "packages/ai/src/utils/overflow.ts"
+      - "packages/ai/src/utils/retry.ts"
+      - "packages/ai/test/overflow.test.ts"
+      - "packages/ai/test/retry.test.ts"
+      - "packages/coding-agent/examples/extensions/codex-image.ts"
+      - "packages/coding-agent/examples/extensions/game-assets/**"
+      - "packages/coding-agent/examples/extensions/trace-viewer/**"
+      - "packages/coding-agent/test/game-assets-package.test.ts"
+      - "packages/coding-agent/test/suite/agent-session-request-buffer-overflow.test.ts"
+      - "packages/coding-agent/test/suite/codex-image-extension.test.ts"
+      - "packages/coding-agent/test/suite/trace-studio-extension.test.ts"
       - "scripts/npm-command.mjs"
       - ".github/workflows/customizations.yml"
 
@@ -27,7 +51,13 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             customizations/langfuse-enhanced/package-lock.json
+            packages/coding-agent/examples/extensions/trace-viewer/package-lock.json
       - run: npm ci --ignore-scripts
       - run: npm ci --prefix customizations/langfuse-enhanced --ignore-scripts --legacy-peer-deps
+      - run: npm ci --prefix packages/coding-agent/examples/extensions/trace-viewer --ignore-scripts --legacy-peer-deps
       - run: npm run check:customizations
       - run: node --test customizations/setup.test.mjs customizations/langfuse-enhanced/test/trace-data.test.ts
+      - run: node ../../node_modules/vitest/dist/cli.js --run test/overflow.test.ts test/retry.test.ts
+        working-directory: packages/ai
+      - run: node ../../node_modules/vitest/dist/cli.js --run test/game-assets-package.test.ts test/suite/agent-session-request-buffer-overflow.test.ts test/suite/codex-image-extension.test.ts test/suite/trace-studio-extension.test.ts
+        working-directory: packages/coding-agent

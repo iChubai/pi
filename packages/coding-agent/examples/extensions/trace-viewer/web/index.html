@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Pi Trace Viewer · Statistics &amp; LLM Calls</title>
+	<link rel="stylesheet" href="/session.css"><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+	<a class="skip-link" href="#workspace">Skip to workspace</a>
+	<header class="topbar">
+		<div class="brand"><span class="brand-mark" aria-hidden="true"></span> PI TRACE</div>
+		<nav class="mode-switch" aria-label="Viewer mode"><button data-view="session" class="mode-btn">Session</button><button data-view="calls" class="mode-btn">LLM Calls</button><button data-view="overview" class="mode-btn active" aria-current="page">Statistics</button></nav>
+		<div class="topbar-spacer"></div><label class="session-picker-label" for="sessions">Session</label><select id="sessions" class="session-picker" aria-label="Select session"><option>Connecting…</option></select>
+		<span id="connection" class="live-status" role="status" aria-live="polite"><span class="status-dot"></span>connecting</span>
+		<button id="theme" class="icon-btn" aria-label="Switch color theme" title="Switch color theme">◐</button>
+		<button id="refresh" class="icon-btn refresh-button" title="Refresh data" aria-label="Refresh data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7"/></svg></button>
+	</header>
+	<main id="workspace" tabindex="-1">
+		<header class="workspace-header"><div class="breadcrumbs">pi <span>/</span> session <span>/</span> <b id="breadcrumb-view">Statistics</b></div><div class="header-actions"><span id="capture-status" class="capture-badge">—</span><a id="download" class="small-btn" href="#">↓ JSONL</a></div></header>
+		<section class="page-heading"><div><h1 id="page-title">Statistics</h1><p id="page-description">Recorded usage, context, calls and tools.</p><span id="session-path" class="path-label"></span></div><div class="scope-control"><label for="scope">Data scope</label><select id="scope"><option value="branch">Current branch</option><option value="all">Entire history</option></select></div></section>
+		<div id="notice" class="notice" hidden></div>
+		<details id="session-info" class="session-information"><summary>Session information <span id="session-summary"></span></summary><div id="session-info-body"></div></details>
+		<section id="overview" class="view">
+			<div id="metrics" class="metric-grid"></div>
+			<div class="chart-grid-layout">
+				<article id="context-chart" class="panel wide"></article>
+				<article id="latency-chart" class="panel"></article>
+				<article id="payload-chart" class="panel"></article>
+				<article id="cache-chart" class="panel"></article>
+				<article id="retry-chart" class="panel"></article>
+			</div>
+			<div class="bottom-grid"><article class="panel"><div class="panel-head"><div><h2>Tool activity</h2><p>Execution timings, not gaps between messages.</p></div><span class="muted" id="tool-count"></span></div><div id="tool-table" class="table-scroll"></div></article><article class="panel"><div class="panel-head"><div><h2>Recent calls</h2><p>Select a call to inspect its input and output.</p></div><button class="text-button" id="all-calls">View all →</button></div><div id="recent-calls"></div></article></div>
+			<p class="data-footnote">Tokens are recorded model usage, not subscription quota. Timings cover the client-observed call lifecycle. Missing historical timings remain unknown. C marks a compaction boundary.</p>
+		</section>
+		<section id="session" class="view" hidden>
+			<div class="list-toolbar"><input id="entry-search" type="search" maxlength="256" placeholder="Search full messages, tool output, labels…" aria-label="Search full session content"><select id="entry-filter" aria-label="Filter tree"><option value="default">Conversation</option><option value="all">All entries</option><option value="no-tools">No tool results</option><option value="labeled">Labeled only</option><option value="user">User messages</option><option value="errors">Errors</option></select><button class="quiet-button" data-search-again="entries">Search again</button><button id="toggle-tree" class="quiet-button" aria-controls="entry-list" aria-expanded="false">Browse tree</button><button id="follow" class="quiet-button" aria-pressed="true">Follow active leaf</button></div>
+			<div class="conversation-layout"><section class="tree-panel"><div class="list-heading"><span>ENTRY / BRANCH</span><span>RECORDED USAGE</span><span>TIME</span></div><div id="entry-list" class="virtual-list" role="group" tabindex="0" aria-label="Session tree"></div><div id="entry-status" class="list-status" aria-live="polite"></div></section>
+				<div id="tree-resizer" class="pane-resizer" role="separator" tabindex="0" aria-label="Resize session tree" aria-orientation="vertical" aria-valuemin="260" aria-valuemax="600" aria-valuenow="320"></div>
+				<section id="conversation" class="conversation panel" aria-label="Selected branch conversation"><header class="conversation-toolbar"><div><h2>Branch conversation</h2><span class="conversation-status"></span></div><div><button class="quiet-button" data-older>Older</button><button class="quiet-button" data-newer>Newer</button><button class="quiet-button" data-latest>Selected node</button></div></header><div class="conversation-list" tabindex="0" aria-label="Continuous branch transcript"></div></section>
+			</div>
+		</section>
+		<section id="calls" class="view" hidden><div class="list-toolbar"><input id="call-search" type="search" maxlength="256" placeholder="Search full context, payloads, output and streams…" aria-label="Search full call content"><button class="quiet-button" data-search-again="calls">Search again</button><select id="call-filter" aria-label="Filter calls"><option value="all">All calls</option><option value="agent">Agent calls</option><option value="summary">Summaries</option><option value="error">Errors</option><option value="captured">Captured live</option></select></div><div class="list-heading"><span>LLM CALL</span><span>INPUT / OUTPUT</span><span>DURATION</span></div><div id="call-list" class="virtual-list" role="group" tabindex="0" aria-label="Model calls"></div><div id="call-status" class="list-status" aria-live="polite"></div></section>
+		<footer class="workspace-footer"><span id="data-status">Waiting for a session…</span><span>PI TRACE <b>0.3</b></span></footer><p class="privacy-note">Local inspection. No model requests. No external analytics.</p>
+	</main>
+	<aside id="inspector" class="inspector" aria-label="Item inspector" hidden><div id="inspector-resizer" class="pane-resizer inspector-resizer" role="separator" tabindex="0" aria-label="Resize inspector" aria-orientation="vertical" aria-valuemin="340" aria-valuemax="900" aria-valuenow="570"></div><div class="inspector-top"><span>INSPECTOR</span><div><button class="quiet-button" data-copy-link>Copy link</button><button class="quiet-button" data-copy-detail>Copy JSON</button><button class="quiet-button" data-refresh-detail>Refresh item</button><button id="close-inspector" class="icon-btn" aria-label="Close inspector">×</button></div></div><div class="inspector-heading"></div><div class="inspector-body"></div></aside>
+	<dialog id="image-viewer" aria-label="Enlarged image"><header><span>Original attachment</span><div><a class="quiet-button" download>Download original</a><button class="icon-btn" aria-label="Close enlarged image">×</button></div></header><img alt="Session image attachment"></dialog>
+	<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+	<script src="/vendor/marked.js"></script><script src="/vendor/highlight.js"></script><script type="module" src="/app.js"></script>
+</body>
+</html>

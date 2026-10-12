@@ -1,0 +1,14 @@
+{
+  "task": "video-generation",
+  "parameters": {
+    "arguments": [
+      ["--prompt", "A locked-off camera shows a futuristic weather broadcast monitor. A calm narrator announces approaching rain. The graphics move slowly; no camera movement."],
+      ["--seed", 42],
+      ["--height", 512],
+      ["--width", 768],
+      ["--num-frames", 121],
+      ["--frame-rate", 24]
+    ]
+  },
+  "inputs": []
+}
