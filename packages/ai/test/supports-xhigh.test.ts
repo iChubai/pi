@@ -114,7 +114,7 @@ describe("getSupportedThinkingLevels", () => {
 		const expected = {
 			openai: ["low", "medium", "high", "xhigh", "max"],
 			azure: ["low", "medium", "high", "xhigh", "max"],
-			"openai-codex": ["minimal", "low", "medium", "high", "xhigh", "max"],
+			"openai-codex": ["low", "medium", "high", "xhigh", "max", "ultra"],
 		} as const;
 		for (const [provider, levels] of Object.entries(expected)) {
 			const model = getModel(provider as keyof typeof expected, "gpt-6.1-sol");
@@ -145,7 +145,7 @@ describe("getSupportedThinkingLevels", () => {
 						},
 					],
 				},
-				contextWindow: 272000,
+				contextWindow: provider === "openai-codex" && modelId === "gpt-6.1-sol" ? 500000 : 272000,
 				maxTokens: 128000,
 				compat: {
 					supportsAdditionalTools: true,

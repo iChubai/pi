@@ -1,3 +1,4 @@
+import { DEFAULT_IMAGE_RESIZE } from "../image-defaults.ts";
 import type { Provider, RefreshModelsContext } from "../models.ts";
 import type { ModelsStoreEntry } from "../models-store.ts";
 import type { Model, ModelThinkingLevel } from "../types.ts";
@@ -127,6 +128,20 @@ export function parseCodexCatalog(value: unknown): CodexCatalogModel[] {
 	});
 }
 
+function withDefaultImageResize(model: CodexModel): CodexModel {
+	if (!model.input.includes("image")) return model;
+	return {
+		...model,
+		inputLimits: {
+			...model.inputLimits,
+			images: {
+				...model.inputLimits?.images,
+				resize: { ...DEFAULT_IMAGE_RESIZE, ...model.inputLimits?.images?.resize },
+			},
+		},
+	};
+}
+
 /** Official fields override heuristics; unrelated limits, prices, and legacy IDs remain intact. */
 export function applyCodexCatalog(
 	baseline: readonly CodexModel[],
@@ -172,7 +187,7 @@ export function applyCodexCatalog(
 			},
 		});
 	}
-	return [...merged.values()];
+	return [...merged.values()].map(withDefaultImageResize);
 }
 
 function accountId(token: string): string {
@@ -241,12 +256,14 @@ export function withOfficialCodexCatalog(
 				Array.isArray(stored.models) &&
 				stored.models.length > 0;
 			const restored = matching
-				? stored.models!.filter(
-						(model): model is CodexModel =>
-							model.provider === provider.id &&
-							model.api === "openai-codex-responses" &&
-							isModelType(model, "chat"),
-					)
+				? stored
+						.models!.filter(
+							(model): model is CodexModel =>
+								model.provider === provider.id &&
+								model.api === "openai-codex-responses" &&
+								isModelType(model, "chat"),
+						)
+						.map(withDefaultImageResize)
 				: baseline;
 			if (
 				!(await context.publish({

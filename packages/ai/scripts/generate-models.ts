@@ -3,6 +3,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
+import { DEFAULT_IMAGE_RESIZE } from "../src/image-defaults.ts";
 import { applyCodexCatalog, CODEX_CATALOG_FALLBACK } from "../src/providers/openai-codex-catalog.ts";
 import { getEffortThinkingLevelMap, type ModelsDevReasoningOption } from "./models-dev-reasoning-options.ts";
 import { type AiGatewayPricing, getAiGatewayCost } from "./ai-gateway-pricing.ts";
@@ -414,16 +415,6 @@ const OPENAI_LONG_CONTEXT_PRICING_MODEL_IDS = new Set([
 	"gpt-6-luna",
 	"gpt-6.1-sol",
 ]);
-
-// Keep the generated default no less restrictive than coding-agent's historical
-// image preprocessing. Provider limits can narrow this profile, but unknown
-// providers retain the cache-safe 2000px / 4.5 MiB behavior.
-const DEFAULT_IMAGE_RESIZE = {
-	maxWidth: 2000,
-	maxHeight: 2000,
-	maxBytes: 4.5 * 1024 * 1024,
-	jpegQuality: 80,
-} as const;
 
 function withOpenAiLongContextPricing(cost: Model<Api>["cost"]): Model<Api>["cost"] {
 	return {

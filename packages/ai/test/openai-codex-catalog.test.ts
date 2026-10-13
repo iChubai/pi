@@ -93,6 +93,12 @@ describe("official Codex model metadata", () => {
 				defaultThinkingLevel: official.defaultReasoningLevel,
 			});
 			expect(getSupportedThinkingLevels(model!)).toEqual(official.reasoningLevels);
+			expect(model?.inputLimits?.images?.resize).toEqual({
+				maxWidth: 2000,
+				maxHeight: 2000,
+				maxBytes: 4718592,
+				jpegQuality: 80,
+			});
 		}
 		expect(models.find((model) => model.id === "gpt-6.1-sol")?.contextWindow).toBe(500000);
 		expect(models.find((model) => model.id === "gpt-6-luna")?.contextWindow).toBe(272000);
@@ -153,8 +159,39 @@ describe("official Codex model metadata", () => {
 			contextWindow: 600000,
 			maxContextWindow: 872000,
 			maxTokens: 16384,
+			inputLimits: { images: { resize: { maxWidth: 2000, maxHeight: 2000, maxBytes: 4718592, jpegQuality: 80 } } },
 		});
 		expect(baseline).toEqual(snapshot);
+	});
+
+	it("preserves configured image limits and fills only missing resize defaults", () => {
+		const before = openaiCodexProvider()
+			.getModels()
+			.find((model) => model.id === "gpt-6.1-sol")!;
+		const baseline: CodexModel = {
+			...before,
+			inputLimits: {
+				maxRequestBytes: 1000000,
+				images: { maxPerRequest: 3, resize: { maxWidth: 1200, jpegQuality: 60 } },
+			},
+		};
+		const snapshot = structuredClone(baseline);
+		const [updated] = applyCodexCatalog([baseline], parseCodexCatalog(catalog()));
+		expect(updated.inputLimits).toEqual({
+			maxRequestBytes: 1000000,
+			images: {
+				maxPerRequest: 3,
+				resize: { maxWidth: 1200, maxHeight: 2000, maxBytes: 4718592, jpegQuality: 60 },
+			},
+		});
+		expect(baseline).toEqual(snapshot);
+	});
+
+	it("does not add image preprocessing to a new text-only model", () => {
+		const metadata = parseCodexCatalog({
+			models: [{ ...catalog("text-codex").models[0], input_modalities: ["text"] }],
+		});
+		expect(applyCodexCatalog([], metadata)[0].inputLimits).toBeUndefined();
 	});
 
 	it("enables ultra only on models explicitly advertising it", () => {
@@ -188,6 +225,27 @@ describe("account-scoped Codex discovery", () => {
 		vi.mocked(fetch).mockClear();
 		await provider.refreshModels?.(refreshContext(stored, { allowNetwork: false }).context);
 		expect(provider.getModels().find((model) => model.id === "gpt-6.1-sol")?.contextWindow).toBe(550000);
+		expect(fetch).not.toHaveBeenCalled();
+	});
+
+	it("restores image preparation for cached discovery without changing account metadata", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(JSON.stringify(catalog("future-codex", 600000)))),
+		);
+		const { context, publications } = refreshContext();
+		await openaiCodexProvider().refreshModels?.(context);
+		const stored = publications.find((publication) => publication.persist)?.persist as CodexStoredCatalog;
+		stored.models = stored.models.map((model) => ({ ...model, inputLimits: undefined }));
+		const snapshot = structuredClone(stored);
+		const provider = openaiCodexProvider();
+		vi.mocked(fetch).mockClear();
+		await provider.refreshModels?.(refreshContext(stored, { allowNetwork: false }).context);
+		expect(provider.getModels().find((model) => model.id === "future-codex")).toMatchObject({
+			contextWindow: 600000,
+			inputLimits: { images: { resize: { maxWidth: 2000, maxHeight: 2000, maxBytes: 4718592, jpegQuality: 80 } } },
+		});
+		expect(stored).toEqual(snapshot);
 		expect(fetch).not.toHaveBeenCalled();
 	});
 
